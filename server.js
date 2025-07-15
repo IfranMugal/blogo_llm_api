@@ -10,14 +10,7 @@ import { moderateBlog } from "./moderateBlog.js";
 dotenv.config();
 const app = express();
 
-app.use(
-    cors({
-      origin: "https://blogo-eosin.vercel.app/",
-      credentials: true,
-      methods: ["GET", "POST"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    })
-  );
+app.use(cors());
 app.use(express.json());
 
 app.post("/generate", async (req, res) => {
