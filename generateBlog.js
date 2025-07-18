@@ -1,31 +1,37 @@
-// generateBlog.js
 import { PromptTemplate } from "@langchain/core/prompts";
 import { llm } from "./llm.js";
 
 export async function generateBlog(topic) {
-  console.log("this is topic:", topic);
+  // Step 1: Check if the topic is appropriate
+  const checkPrompt = PromptTemplate.fromTemplate(
+    `Just reply with one word.
+You are a strict content filter for kids blog topics.
+Only respond with "valid" or "invalid".
 
-  const prompt = PromptTemplate.fromTemplate(
-    `You are an AI content writer.
-
-TASK:
-If the topic "{{topic}}" is valid, write a detailed and SEO-optimized blog post of 500-700 words on it. The blog should not have a title or heading—just the content.
-
-If the topic is not a valid blog topic (i.e., it is nonsense like "sdfsdfsdffff", contains random characters, offensive language, or is completely irrelevant), you must respond with exactly:
-invalid title
-
-Do not explain. Do not write a substitute blog. Do not apologize. Do not continue. Just reply with exactly:
-invalid title`
+Check the following topic: "{topic}"`
   );
 
-  const input = await prompt.format({ topic });
-  const response = await llm.invoke(input);
+  const checkInput = await checkPrompt.format({ topic });
+  const checkResponse = await llm.invoke(checkInput);
+  const verdict = checkResponse.content.trim().toLowerCase();
 
-  const content = response.content.trim();
-
-  if (content.toLowerCase() === "i'm sorry for any inconvenience") {
+  const invalidPhrases = ["invalid", "not a valid topic", "i'm sorry"];
+  if (invalidPhrases.some(phrase => verdict.includes(phrase))) {
     return "Invalid blog topic.";
   }
 
-  return content;
+  // Step 2: Generate the blog
+  const blogPrompt = PromptTemplate.fromTemplate(
+    `You are an AI that helps people to write blogs on their experience on several topics.
+
+TASK:
+Write a detailed and SEO-optimized blog post of 500-700 words on the given topic. The blog should not have a title or heading—just the content.
+
+Your topic is: "{topic}"`
+  );
+
+  const blogInput = await blogPrompt.format({ topic });
+  const blogResponse = await llm.invoke(blogInput);
+
+  return blogResponse.content.trim();
 }

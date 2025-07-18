@@ -21,6 +21,6 @@ Blog text:
   const input = await prompt.format({ blog_text: blogText });
   const response = await llm.invoke(input);
   const result = response.content.trim();
-  const isWrong = !result.toLowerCase().includes("no issues found");
+  const isWrong = !result.toLowerCase().includes("no issues found" || "Profanity detected");
   return { result, isWrong };
 }
